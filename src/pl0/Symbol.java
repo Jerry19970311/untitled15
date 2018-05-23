@@ -1,6 +1,9 @@
 package pl0;
 
-public enum Symbol {
+import pl0gaprepared.Vital;
+
+public enum Symbol implements Vital{
+    EMPTY,DOLLAR,
     //不能被识别的符号
     NUL,
     //标识符
@@ -13,4 +16,12 @@ public enum Symbol {
     CONSTSYM,VARSYM,PROCSYM,BEGINSYM,ENDSYM,ODDSYM,IFSYM,THENSYM,CALLSYM,WHILESYM,DOSYM,READSYM,WRITESYM,
     //界符:(,),,,;,.
     LPAREN,RPAREN,COMMA,SEMICOLON,PERIOD;
+    public String getName(){
+        return toString();
+    }
+
+    @Override
+    public boolean isVN() {
+        return false;
+    }
 }

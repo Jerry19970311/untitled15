@@ -184,7 +184,7 @@ public class NewMain {
             if(getch()==-1){
                 return -1;
             }
-            if(Pl0.ch=='=') {
+            if(Pl0.ch=='='){
                 Pl0.symbolBuffer.append(Pl0.ch);
                 if(getch()==-1){
                     return -1;

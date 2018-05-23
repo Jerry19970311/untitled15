@@ -28,6 +28,8 @@ public class ErrorLog {
         errorsReflect.put(1,"Program incomplete");//文件并没有以.结尾
         errorsReflect.put(2,"NULL Symbol");//标识符为NUL
         errorsReflect.put(3,"Number Exception");//数值过大
+        errorsReflect.put(4,"Unexpected Symbol");//
+        errorsReflect.put(5,"False Follow Symbol");
     }
 }
 

@@ -1,0 +1,3 @@
+const abcd=1,bcde=2;
+var cccc,dddd;
+cccc:=abcd+bcde.

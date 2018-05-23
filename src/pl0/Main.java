@@ -1,11 +1,23 @@
 package pl0;
 
+import pl0gaprepared.*;
 import test0402.Test1;
+import test0402.TestPrepared;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Iterator;
+import java.util.Scanner;
+import java.util.Stack;
 
 public class Main {
+    public static String path;
+    public static String shell;
+    public static String[] stmts;
+    public static int index;
+    public static Stack<Vital> vitalStack;
+    //public static Stack<Symbol> symbolStack;
     public static void init(){
+        vitalStack=new Stack<Vital>();
         for(int i=0;i<=255;i++){
             Pl0.ssym[i]=Symbol.NUL;
         }
@@ -64,7 +76,6 @@ public class Main {
     }
     public static void error(int n){
     }
-
     //读取line字符串中的下一个词，置于ch中。
     public static int getch() throws IOException {
         //cc记录要读取的字符位置，ll为字符串长度，如果cc=ll，就说明当前行已读完，需要从文件中读入新行取代原来的line数组。
@@ -72,9 +83,9 @@ public class Main {
         if (Pl0.cc == Pl0.ll) {
             //利用BufferReader类每次读入一行。
             String buffer;
-            if (Test1.isFile) {
+            //if (Test1.isFile) {
                 buffer = Pl0.finBufferedReader.readLine();
-            }else {
+            /*}else {
                 if(Test1.index>=Test1.stmts.length){
                     ErrorLog.addError(Pl0.whereLine, 1);
                     return -1;
@@ -83,7 +94,7 @@ public class Main {
                 System.out.println("--------------------------");
                 System.out.println(buffer);
                 Test1.index++;
-            }
+            }*/
             //判定本次读入的是否为空行，是则输出异常信息返回异常值-1。
             if (buffer == null) {
                 //System.out.println("Program incomplete");
@@ -155,6 +166,7 @@ public class Main {
             //将装好的字符串生成存入临时变量a，然后将a中内容复制到标识符变量id中。
             Pl0.a=temp.toString();
             Pl0.id=new String(Pl0.a);
+            System.out.println("读到的串是:"+Pl0.a);
             //将id在word中进行二分查找，如果没找着就说明是名字。
             //二分查找法：
             //如果找到了，那么在本次循环结束以后，i-j=2（k在i,j中间），从而退出循环；
@@ -188,6 +200,7 @@ public class Main {
             k--;
             if(k>Pl0.NMAN){
                 //错误处理。
+                ErrorLog.addError(Pl0.whereLine,3);
             }
         }else if(Pl0.ch==':'){
             if(getch()==-1){
@@ -236,6 +249,86 @@ public class Main {
         if(Pl0.sym==Symbol.NUL){
             ErrorLog.addError(Pl0.whereLine,2);
             return -1;
+        }
+        return 0;
+    }
+    public static void prepare(String g) throws IOException, NotLL1Exception {
+        Pl0.fin = new File(g);
+        Pl0.finBufferedReader = new BufferedReader(new FileReader(Pl0.fin));
+        Pl0.fa1 = new File("fa1.tmp");
+        Pl0.fa1.createNewFile();
+        Pl0.fa1BufferedWriter = new BufferedWriter(new FileWriter(Pl0.fa1));
+        Main.init();
+        ErrorLog.init();
+        TestPrepared.init();
+        PreparedMain.init();
+        PreparedMain.buildReflects();
+        PreparedMain.buildFirst();
+        PreparedMain.buildFollow();
+        PreparedMain.buildSelect();
+        PreparedMain.buildPreTable();
+        index=0;
+        Pl0.err=0;
+        Pl0.cc=Pl0.cx=Pl0.ll=Pl0.whereLine=0;
+        Pl0.ch=' ';
+    }
+    public static int grammarAnalysis(String f) throws IOException, NotLL1Exception {
+        prepare(f);
+        /*for(Iterator<Sign> niterator=PreparedMain.vnReflect.values().iterator();niterator.hasNext();){
+            System.out.println(niterator.next().getPreTablePrint());
+        }*/
+        vitalStack.push(PreparedMain.vtReflect.get("$"));
+        vitalStack.push(PreparedMain.vnReflect.get("<程序>"));
+        while (-1!=Main.getsym()){
+            Vital vital;
+            do {
+                vital = vitalStack.pop();
+            }while (vital==Symbol.EMPTY);
+            System.out.println("----------------------------------------");
+            while (vital.isVN()){
+                System.out.println(vital.getName()+"\tsym:"+Pl0.sym);
+                System.out.println("vital:"+vital.getName()+"\tStack:"+vitalStack);
+                //System.out.println(((Sign)vital).getPreTablePrint());
+                Reflect reflect=((Sign)vital).getPreReflect(Pl0.sym);
+                System.out.println("选择表达式:"+reflect);
+                if(null==reflect){
+                    ErrorLog.addError(index,4);
+                    return -1;
+                }
+                Iterator<Vital> iterator=reflect.getAntiIterator();
+                while (iterator.hasNext()){
+                    vitalStack.push(iterator.next());
+                }
+                do {
+                    vital = vitalStack.pop();
+                }while (vital==Symbol.EMPTY);
+            }
+            System.out.println("→vital:"+vital.getName()+"\tStack:"+vitalStack);
+            if(((Symbol)vital)==Symbol.DOLLAR){
+                break;
+            }
+            if(((Symbol)vital)!=Pl0.sym){
+                System.out.println("[Error]sym:"+Pl0.sym+"\t"+vital);
+                ErrorLog.addError(index,4);
+                return -1;
+            }
+            /*if(vital.isVN()){
+                Reflect reflect=((Sign)vital).getPreReflect(Pl0.sym);
+                if(null==reflect){
+                    ErrorLog.addError(index,4);
+                }
+                Iterator<Vital> iterator=reflect.getAntiIterator();
+                while (iterator.hasNext()){
+                    vitalStack.push(iterator.next());
+                }
+            }else{
+                if(((Symbol)vital)==Symbol.DOLLAR){
+                    break;
+                }
+                if(((Symbol)vital)!=Pl0.sym){
+                    ErrorLog.addError(index,4);
+                }
+            }*/
         }
         return 0;
     }
